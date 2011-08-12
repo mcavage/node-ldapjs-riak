@@ -1,0 +1,28 @@
+{
+  "author": "Mark Cavage <mcavage@gmail.com>",
+  "name": "ldapjs-riak",
+  "homepage": "http://ldapjs.org",
+  "description": "A Riak backend for ldapjs (server).",
+  "version": "0.1.0",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/mcavage/node-ldapjs-riak.git"
+  },
+  "main": "lib/index.js",
+  "scripts": {
+    "pretest": "which gjslint; if [[ \"$?\" = 0 ]] ; then  gjslint --nojsdoc -r lib -r tst; else echo \"Missing gjslint. Skipping lint\"; fi",
+    "test": "./node_modules/.bin/tap ./tst"
+  },
+  "engines": {
+    "node": ">=0.4.10"
+  },
+  "dependencies": {
+    "ldapjs": ">=0.1.0",
+    "retry": "~0.4.0",
+    "riak-js": "~0.4.0"
+  },
+  "devDependencies": {
+    "tap": "~0.0.9",
+    "node-uuid": "~1.2.0"
+  }
+}
