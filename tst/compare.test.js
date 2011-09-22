@@ -1,7 +1,7 @@
 // Copyright 2011 Mark Cavage, Inc.  All rights reserved.
 
 var ldap = require('ldapjs');
-var riak = require('riak-js');
+var log4js = require('log4js');
 var test = require('tap').test;
 var uuid = require('node-uuid');
 
@@ -25,16 +25,27 @@ test('setup', function(t) {
   t.ok(riakjs.createBackend);
   t.equal(typeof(riakjs.createBackend), 'function');
   backend = riakjs.createBackend({
-    host: 'localhost',
-    port: 8098,
-    bucket: uuid(),
-    indexes: ['l'],
-    uniqueIndexes: ['uid']
+    bucket: {
+      name: uuid()
+    },
+    uniqueIndexBucket: {
+      name: uuid()
+    },
+    indexes: {
+      l: false,
+      uid: true
+    },
+    client: {
+      url: 'http://localhost:8098'
+    },
+    log4js: log4js
   });
   t.ok(backend);
   t.ok(backend.add);
   t.equal(typeof(backend.add), 'function');
-  server = ldap.createServer();
+  server = ldap.createServer({
+    log4js: log4js
+  });
   t.ok(server);
 
   server.add(SUFFIX, backend, backend.add());
@@ -130,7 +141,7 @@ test('compare non-existent entry', function(t) {
 
 
 test('teardown', function(t) {
-  var db = backend.db;
+  var riak = backend.client;
   var bucket = backend.bucket;
 
   function close() {
@@ -142,16 +153,16 @@ test('teardown', function(t) {
     });
   }
 
-  function removeIndexes() {
-    var _bucket = bucket + '_indexes_l';
-
-    db.keys(_bucket, function(err, obj, meta) {
-      if (obj && obj.length) {
+  function removeUniqueIndexes() {
+    var bucket = backend.uniqueIndexBucket.name;
+    riak.list(bucket, function(err, keys) {
+      if (keys && keys.length) {
         var finished = 0;
-        obj.forEach(function(k) {
-          db.remove(_bucket, k, function(err, _obj, meta) {
-            if (++finished >= obj.length)
+        keys.forEach(function(k) {
+          riak.del(bucket, k, function(err) {
+            if (++finished >= keys.length) {
               return close();
+            }
           });
         });
       } else {
@@ -160,31 +171,13 @@ test('teardown', function(t) {
     });
   }
 
-  function removeUniqueIndexes() {
-    var _bucket = bucket + '_unique_indexes_uid';
-    db.keys(_bucket, function(err, obj, meta) {
-      if (obj && obj.length) {
-        var finished = 0;
-        obj.forEach(function(k) {
-          db.remove(_bucket, k, function(err, _obj, meta) {
-            if (++finished >= obj.length) {
-              console.log('removing indexes');
-              return removeIndexes();
-            }
-          });
-        });
-      } else {
-        return removeIndexes();
-      }
-    });
-  }
-
-  return db.keys(bucket, function(err, obj, meta) {
-    if (obj && obj.length) {
+  var bucket = backend.bucket.name;
+  return riak.list(bucket, function(err, keys) {
+    if (keys && keys.length) {
       var finished = 0;
-      obj.forEach(function(k) {
-        db.remove(bucket, k, function(err, _obj, meta) {
-          if (++finished >= obj.length) {
+      keys.forEach(function(k) {
+        riak.del(bucket, k, function(err) {
+          if (++finished >= keys.length) {
             return removeUniqueIndexes();
           }
         });
