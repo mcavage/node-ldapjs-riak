@@ -26,8 +26,8 @@ test('setup', function(t) {
   t.ok(riakjs.createBackend);
   t.equal(typeof(riakjs.createBackend), 'function');
   backend = riakjs.createBackend({
-      name: uuid()
     bucket: {
+      name: uuid()
     },
     uniqueIndexBucket: {
       name: uuid()
