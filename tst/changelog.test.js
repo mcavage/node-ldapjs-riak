@@ -9,16 +9,13 @@ var uuid = require('node-uuid');
 
 ///--- Globals
 
-var Attribute = ldap.Attribute;
-var Change = ldap.Change;
-
 var SUFFIX = 'o=' + uuid();
 var SOCKET = '/tmp/.' + uuid();
+var TOTAL_ENTRIES = 3;
 
 var backend;
 var client;
 var server;
-
 
 
 ///--- Tests
@@ -48,15 +45,13 @@ test('setup', function(t) {
     log4js: log4js
   });
   t.ok(backend);
-  t.ok(backend.add);
-  t.equal(typeof(backend.add), 'function');
-  server = ldap.createServer({
-    log4js: log4js
-  });
+  t.ok(backend.search);
+  t.equal(typeof(backend.search), 'function');
+  server = ldap.createServer();
   t.ok(server);
 
   server.add(SUFFIX, backend, backend.add());
-  server.modify(SUFFIX, backend, backend.modify());
+  server.search('cn=changelog', backend, backend.changelogSearch());
 
   server.listen(SOCKET, function() {
     client = ldap.createClient({
@@ -69,7 +64,7 @@ test('setup', function(t) {
 
 
 test('handler chain', function(t) {
-  var handlers = backend.modify();
+  var handlers = backend.changelogSearch();
   t.ok(handlers);
   t.ok(Array.isArray(handlers));
   handlers.forEach(function(h) {
@@ -80,7 +75,7 @@ test('handler chain', function(t) {
 
 
 test('handler chain append', function(t) {
-  var handlers = backend.modify([
+  var handlers = backend.changelogSearch([
     function foo(req, res, next) {
       return next();
     }
@@ -105,68 +100,56 @@ test('add fixtures', function(t) {
     t.ifError(err);
     t.ok(res);
     t.equal(res.status, 0);
-    t.end();
-  });
-});
 
+    var finished = 0;
+    for (var i = 0; i < TOTAL_ENTRIES; i++) {
+      var entry = {
+        cn: 'child' + i,
+        objectClass: 'person',
+        uid: uuid(),
+        sn: 'test',
+        l: i % 3 ? 'vancouver' : 'seattle'
+      };
+      client.add('cn=child' + i + ',' + SUFFIX, entry, function(err, res) {
+        t.ifError(err);
+        t.ok(res);
+        t.equal(res.status, 0);
 
-test('modify add ok', function(t) {
-  var change = new Change({
-    type: 'add',
-    modification: {
-      'pets': ['honey badger', 'bear']
+        if (++finished === TOTAL_ENTRIES)
+          t.end();
+      });
     }
   });
-  client.modify(SUFFIX, change, function(err, res) {
+});
+
+
+test('search sub objectclass=*', function(t) {
+  client.search('cn=changelog', { scope: 'sub' }, function(err, res) {
     t.ifError(err);
-    t.end();
+    t.ok(res);
+
+    var retrieved = 0;
+    res.on('searchEntry', function(entry) {
+      t.ok(entry);
+      t.ok(entry instanceof ldap.SearchEntry);
+      t.ok(entry.dn.toString());
+      t.ok(entry.attributes);
+      t.ok(entry.attributes.length);
+      t.ok(entry.object);
+      retrieved++;
+    });
+    res.on('error', function(err) {
+      t.fail(err);
+    });
+    res.on('end', function(res) {
+      t.ok(res);
+      t.ok(res instanceof ldap.SearchResponse);
+      t.equal(res.status, 0);
+      t.ok(retrieved);
+      t.end();
+    });
   });
 });
-
-
-test('modify replace ok', function(t) {
-  var change = new Change({
-    type: 'replace',
-    modification: new Attribute({
-      type: 'pets',
-      vals: ['moose']
-    })
-  });
-  client.modify(SUFFIX, change, function(err, res) {
-    t.ifError(err);
-    t.end();
-  });
-});
-
-
-test('modify delete ok', function(t) {
-  var change = new Change({
-    type: 'delete',
-    modification: new Attribute({
-      type: 'pets'
-    })
-  });
-  client.modify(SUFFIX, change, function(err, res) {
-    t.ifError(err);
-    t.end();
-  });
-});
-
-
-test('modify non-existent entry', function(t) {
-  var change = new Change({
-    type: 'delete',
-    modification: new Attribute({
-      type: 'pets'
-    })
-  });
-  client.modify('cn=child1,' + SUFFIX, change, function(err) {
-    t.ok(err);
-    t.ok(err instanceof ldap.NoSuchObjectError);
-    t.end();
-  });
-});
-
 
 test('teardown', function(t) {
   function close() {

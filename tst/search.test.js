@@ -391,9 +391,6 @@ test('search sub or filter ok', function(t) {
 
 
 test('teardown', function(t) {
-  var riak = backend.client;
-  var bucket = backend.bucket;
-
   function close() {
     client.unbind(function() {
       server.on('close', function() {
@@ -403,37 +400,27 @@ test('teardown', function(t) {
     });
   }
 
-  function removeUniqueIndexes() {
-    var bucket = backend.uniqueIndexBucket.name;
+  function cleanup(bucket) {
     riak.list(bucket, function(err, keys) {
       if (keys && keys.length) {
-        var finished = 0;
-        keys.forEach(function(k) {
+        var _finished = 0;
+        return keys.forEach(function(k) {
           riak.del(bucket, k, function(err) {
-            if (++finished >= keys.length) {
+            if (++_finished >= keys.length) {
+              if (++finished === 2)
               return close();
             }
           });
         });
-      } else {
-        return close();
       }
+
+      if (++finished === 3)
+        return close();
     });
   }
 
-  var bucket = backend.bucket.name;
-  return riak.list(bucket, function(err, keys) {
-    if (keys && keys.length) {
-      var finished = 0;
-      keys.forEach(function(k) {
-        riak.del(bucket, k, function(err) {
-          if (++finished >= keys.length) {
-            return removeUniqueIndexes();
-          }
-        });
-      });
-    } else {
-      return removeUniqueIndexes();
-    }
-  });
+  var riak = backend.client;
+  var finished = 0;
+  cleanup(backend.bucket.name);
+  cleanup(backend.uniqueIndexBucket.name);
 });
