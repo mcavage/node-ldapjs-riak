@@ -1,5 +1,6 @@
 // Copyright 2011 Mark Cavage, Inc.  All rights reserved.
 
+var qs = require('querystring');
 var log4js = require('log4js');
 var test = require('tap').test;
 var uuid = require('node-uuid');
@@ -134,7 +135,8 @@ test('StoreObject (no key, indexes)', function(t) {
 
 
 test('Find by index', function(t) {
-  client.find(bucket, 'email', 'foo@car.com', function(err, objects) {
+  var val = qs.escape('foo@car.com');
+  client.find(bucket, 'email', val, function(err, objects) {
     t.ifError(err);
     t.ok(objects);
     t.ok(objects.length);
