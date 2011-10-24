@@ -3,4 +3,4 @@ node_modules
 *.ldif
 *.tar.gz
 *.tar.bz2
-./docs/pkg/*
+./docs/pkg
