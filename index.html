@@ -1,77 +1,323 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset='utf-8'>
+  <title>ldapjs-riak</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <link rel="stylesheet" type="text/css" href="media/css/style.css">
+  <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Aldrich">
+<link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Aldrich">
+<style>
 
-  <title>mcavage/node-ldapjs-riak @ GitHub</title>
+#logo {
+  color: green;
+}
 
-  <style type="text/css">
-    body {
-      margin-top: 1.0em;
-      background-color: #dbbd21;
-      font-family: Helvetica, Arial, FreeSans, san-serif;
-      color: #000000;
-    }
-    #container {
-      margin: 0 auto;
-      width: 700px;
-    }
-    h1 { font-size: 3.8em; color: #2442de; margin-bottom: 3px; }
-    h1 .small { font-size: 0.4em; }
-    h1 a { text-decoration: none }
-    h2 { font-size: 1.5em; color: #2442de; }
-    h3 { text-align: center; color: #2442de; }
-    a { color: #2442de; }
-    .description { font-size: 1.2em; margin-bottom: 30px; margin-top: 30px; font-style: italic;}
-    .download { float: right; }
-    pre { background: #000; color: #fff; padding: 15px;}
-    hr { border: 0; width: 80%; border-bottom: 1px solid #aaa}
-    .footer { text-align:center; padding-top:30px; font-style: italic; }
-  </style>
+#logo {
+  font-family: Aldrich, Verdana, sans-serif;
+}
+
+h1,h2,h3,h4,h5,h6 {
+  font-family: Aldrich, Verdana, sans-serif;
+}
+
+</style>
+
+  <script type="text/javascript" src="media/js/jquery-1.4.2.min.js"></script>
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-26475040-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
 </head>
-
 <body>
-  <a href="http://github.com/mcavage/node-ldapjs-riak"><img style="position: absolute; top: 0; right: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub" /></a>
+<div id="wrapper">
+<div id="main">
+<div id="fadeout"></div>
+<div id="header">
+  <span id="logo">
+    <a id="homelink" href="https://mcavage.github.com/node-ldapjs-riak">ldapjs-riak</a>
+  </span>
 
-  <div id="container">
+  <!-- <a class="navbutton" href="backend.html">Backend</a> -->
 
-    <div class="download">
-      <a href="http://github.com/mcavage/node-ldapjs-riak/zipball/master">
-        <img border="0" width="90" src="http://github.com/images/modules/download/zip.png"></a>
-      <a href="http://github.com/mcavage/node-ldapjs-riak/tarball/master">
-        <img border="0" width="90" src="http://github.com/images/modules/download/tar.png"></a>
+  <span id="apibox">
+    <span id="apibutton" class="navbutton">Sections</span>
+    <div id="api" class="popup" style="display: none">
+      <ul>
+        <li><div><a href="backend.html">backend</a></div></li>
+      </ul>
     </div>
+  </span>
 
-    <h1><a href="http://github.com/mcavage/node-ldapjs-riak">node-ldapjs-riak</a>
-      <span class="small">by <a href="http://github.com/mcavage">mcavage</a></span></h1>
+  <span id="tocbox">
+    <span id="tocbutton" class="navbutton">Page Contents</span>
+    <div id="toc" class="popup" style="display: none">
+      <ul>
+  <li><div><a href="#why-shouldnt-you-use-ldapjs-riak">Why shouldn't you use ldapjs-riak?</a></div></li>
+  <li><div><a href="#what-else-do-i-need-to-do">What else do I need to do?</a></div></li>
+  <li><div><a href="#installing">Installing</a></div></li>
+  <li><div><a href="#more-information">More information</a></div></li>
+</ul>
 
-    <div class="description">
-      Riak backend for node-ldapjs
     </div>
+  </span>
 
-    <h2>Authors</h2>
-<p>Mark Cavage (mark.cavage@joyent.com)<br/>      </p>
-<h2>Contact</h2>
-<p>Mark Cavage (mcavage@gmail.com)<br/>      </p>
+  <a id="githubfork" href="http://github.com/mcavage/node-ldapjs-riak">
+    <img src="https://a248.e.akamai.net/assets.github.com/img/abad93f42020b733148435e2cd92ce15c542d320/687474703a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f677265656e5f3030373230302e706e67"
+         alt="Fork me on GitHub">
+  </a>
+</div>
+    <div id="content">
+<div id="indextagline">
+High-Availability <a href="http://tools.ietf.org/html/rfc4510"
+id="indextaglink">LDAP</a> using <a id="indextaglink"
+href="http://ldapjs.org">ldapjs</a> and <a id="indextaglink"
+href="http://basho.com">Riak</a>
+</div>
 
 
-    <h2>Download</h2>
-    <p>
-      You can download this project in either
-      <a href="http://github.com/mcavage/node-ldapjs-riak/zipball/master">zip</a> or
-      <a href="http://github.com/mcavage/node-ldapjs-riak/tarball/master">tar</a> formats.
-    </p>
-    <p>You can also clone the project with <a href="http://git-scm.com">Git</a>
-      by running:
-      <pre>$ git clone git://github.com/mcavage/node-ldapjs-riak</pre>
-    </p>
+<h1>Overview</h1>
+<div class="intro">
 
-    <div class="footer">
-      get the source code on GitHub : <a href="http://github.com/mcavage/node-ldapjs-riak">mcavage/node-ldapjs-riak</a>
+
+<p>ldapjs-riak is a full LDAP backend implementation for
+<a href="http://ldapjs.org">ldapjs</a> and <a href="http://basho.com">Riak</a>.
+Using ldapjs-riak, you can easily stand up a highly available LDAP
+cluster. To get bootstrapped, the following code will give you a
+v3-compliant LDAP server that allows a user to make changes to their
+own entry, and any child entries (as an example):</p>
+
+<pre><code>var ldap = require('ldapjs');
+var ldapRiak = require('ldapjs-riak');
+
+var SUFFIX = 'o=example';
+
+function authorize(req, res, next) {
+  var bindDN = req.connection.ldap.bindDN;
+
+  if (req.type === 'BindRequest' ||
+      bindDN.parentOf(req.dn) ||
+      bindDN.equals(req.dn))
+    return next();
+
+  return next(new ldap.InsufficientAccessRightsError());
+}
+
+
+var server = ldap.createServer();
+var backend = ldapRiak.createBackend({
+    "bucket": {
+      "name": "ldapjs_riak",
+    },
+    "uniqueIndexBucket": {
+      "name": ldapjs_ldapjs_riak",
+    },
+    "indexes": {
+      "email": true,
+      "uuid": true,
+      "cn": false,
+      "sn": false
+    },
+    "client": {
+      "url": "http://localhost:8098",
+      "clientId": "ldapjs_riak_1",
+      "retry": {
+        "retries": 3,
+        "factor": 2,
+        "minTimeout": 1000,
+        "maxTimeout": 10000
+      }
+    }
+});
+
+server.bind('cn=root', function(req, res, next) {
+  if (req.version !== 3)
+    return next(new ldap.ProtocolError(req.version + ' is not v3'));
+
+  if (req.credentials !== 'secret')
+    return next(new ldap.InvalidCredentialsError(req.dn.toString()));
+
+  res.end();
+  return next();
+});
+
+server.add(SUFFIX, backend, authorize, backend.add());
+server.modify(SUFFIX, backend, authorize, backend.modify());
+server.bind(SUFFIX, backend, authorize, backend.bind());
+server.compare(SUFFIX, backend, authorize, backend.compare());
+server.del(SUFFIX, backend, authorize, backend.del());
+server.modifyDN(SUFFIX, backend, authorize, backend.modifyDN());
+server.search(SUFFIX, backend, authorize, backend.search());
+
+server.listen(1389, function() {
+  console.log('ldap-riak listening at: %s', server.url);
+});
+</code></pre>
+
+<p>Note that ldapjs-riak requires Riak 1.0 with the <code>eleveldb_backend</code>,
+as it makes heavy use of Riak's secondary indexing feature.  Once you
+have a Riak instance running, and are running that code, try:</p>
+
+<pre class="shell"><code>ldapadd -x -D cn=root -w secret -H ldap://localhost:1389 -f data.ldif
+</code></pre>
+
+<p>Where data.ldif has:</p>
+
+<pre><code>dn: o=example
+o: example
+objectclass: organization
+
+dn: email=nobody@acme.com, o=example
+cn: Sample
+sn: User
+email: nobody@acme.com
+userpassword: secret2
+objectclass: person
+</code></pre>
+
+<p>Now you can try searching as the child user:</p>
+
+<pre class="shell"><code>ldapsearch -x -D email=nobody@acme.com,o=example -w secret2 -H ldap://localhost:1389 -b email=nobody@acme.com,o=example email=*
+</code></pre>
+
+<p>All of the standard LDAP operations:</p>
+
+<ul>
+<li>Add</li>
+<li>Bind</li>
+<li>Compare</li>
+<li>Delete</li>
+<li>Modify</li>
+<li>ModifyDN</li>
+<li>Search</li>
+</ul>
+
+<p>are supported by the Riak backend.  In addition, it supports an
+"almost" compliant changelog implementation (there are a few
+differences, like instead of storing changes in LDIF, they are stored
+in JSON).</p>
+
+
+</div>
+<h1 id="why-shouldnt-you-use-ldapjs-riak">Why shouldn't you use ldapjs-riak?</h1>
+
+<p>Because it (and Riak itself) are not a perfect fit for all use cases.
+That's true of any technology.  Specifically, what this is aimed at is
+a "big data" use case, where the workload breakdown is skewed to be
+very read-heavy, and you can plan the queries you'll need (mostly) in
+advance. Because ldapjs-riak leverages Riak's 2i feature heavily, if
+you're planning to do a lot of ad-hoc type information finding (i.e.,
+on non-indexed data), you're going to be off the reservation.</p>
+
+<h1 id="what-else-do-i-need-to-do">What else do I need to do?</h1>
+
+<p>The sample code above will actually get you a fully-functional LDAP
+server. That said, you probably want to look at writing some of your
+own code for:</p>
+
+<ul>
+<li><em>Admin Users/Authentication:</em> You probably want a 'root' user
+configured that's not stored in Riak, so you can authenticate when
+Riak is unavailable.</li>
+<li><em>Authorization:</em> In the example above I just assert that a DN can do
+anything to entries below it, or at it.  It would not, for example
+stop a modifyDN from happening, and putting itself somewhere else in
+the tree. You probably want something richer here.</li>
+<li><em>Auditing:</em>  I just write out some "w3c style" logs that I can post-process.</li>
+<li><em>Schema:</em> While I sort of loathe standard LDAP schema, it does serve
+a purpose.  I just use a simple "validations" framework that's sort
+of similar to Rails/Django modeling, but simpler.</li>
+<li><em>Password salting:</em> Yeah, this is pretty important if you're storing
+credentials.  You'll need to intercept each request you care about
+to make it behave correctly.</li>
+<li><em>Extra indexing/transforms:</em> If you wanted to store a "parent"
+attribute, for example, that was filled in server-side.  Basically,
+anything you'd use an SQL trigger for.</li>
+</ul>
+
+<h1 id="installing">Installing</h1>
+
+<pre class="shell"><code>npm install ldapjs-riak
+</code></pre>
+
+<p>`Nuff said.</p>
+
+<h1 id="more-information">More information</h1>
+
+<table>
+<tbody>
+<tr><td><a href="/backend.html">backend</a></td><td>Reference for creating and configuring the backend.</td></tr>
+</tbody>
+</table>
+
+<table>
+<tbody>
+<tr><td>License</td><td><a href="http://opensource.org/licenses/mit-license.php">MIT</a></td></tr>
+<tr><td>Code</td><td><a href="https://github.com/mcavage/node-ldapjs-riak">mcavage/node-ldapjs-riak</a></td></tr>
+<tr><td>node.js version</td><td>0.4.x and 0.5.x</td></tr>
+<tr><td>Twitter</td><td><a href="http://twitter.com/mcavage">@mcavage</a></td></tr>
+</tbody>
+</table>
+
     </div>
+<div id="footer">
+  <p class='copy'>Copyright &copy; 2011 <a href="https://github.com/mcavage">Mark Cavage</a></p>
+</div>
+</div> <!-- end of #main -->
+</div> <!-- end of #wrapper -->
+<script type="text/javascript" charset="utf-8">
+$(function () {
+    $("#toc").click(function(event) {
+        // This to ensure clicks in the #toc don't make it up to the
+        // button handler.
+        event.stopPropagation();
+    });
+    $("#toc a").click(function(event) {
+        $("#tocbutton").click();
+    })
+    $("#tocbutton").click(function(event) {
+        var target = $("#toc");
+        if (target.css("display") !== "block") {
+            $("body").bind("click.tocCloser", function(event) {
+                $("#tocbutton").click();
+                event.stopPropagation();
+            });
+        } else {
+            $("body").unbind("click.tocCloser");
+        }
+        target.slideToggle(100);
+        event.stopPropagation();
+    });
 
-  </div>
+    $("#api").click(function(event) {
+        // This to ensure clicks in the #api don't make it up to the
+        // button handler.
+        event.stopPropagation();
+    });
+    $("#api a").click(function(event) {
+        $("#apibutton").click();
+    })
+    $("#apibutton").click(function(event) {
+        var target = $("#api");
+        if (target.css("display") !== "block") {
+            $("body").bind("click.apiCloser", function(event) {
+                $("#apibutton").click();
+                event.stopPropagation();
+            });
+        } else {
+            $("body").unbind("click.apiCloser");
+        }
+        target.slideToggle(100);
+        event.stopPropagation();
+    });
+});
+</script>
 
-  
 </body>
 </html>

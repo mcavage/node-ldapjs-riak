@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Backend | ldapjs-riak</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <link rel="stylesheet" type="text/css" href="media/css/style.css">
+  <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Aldrich">
+<link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Aldrich">
+<style>
+
+#logo {
+  color: green;
+}
+
+#logo {
+  font-family: Aldrich, Verdana, sans-serif;
+}
+
+h1,h2,h3,h4,h5,h6 {
+  font-family: Aldrich, Verdana, sans-serif;
+}
+
+</style>
+
+  <script type="text/javascript" src="media/js/jquery-1.4.2.min.js"></script>
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-26475040-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+</head>
+<body>
+<div id="wrapper">
+<div id="main">
+<div id="fadeout"></div>
+<div id="header">
+  <span id="logo">
+    <a id="homelink" href="https://mcavage.github.com/node-ldapjs-riak">ldapjs-riak</a>
+  </span>
+
+  <!-- <a class="navbutton" href="backend.html">Backend</a> -->
+
+  <span id="apibox">
+    <span id="apibutton" class="navbutton">Sections</span>
+    <div id="api" class="popup" style="display: none">
+      <ul>
+        <li><div><a href="backend.html">backend</a></div></li>
+      </ul>
+    </div>
+  </span>
+
+  <span id="tocbox">
+    <span id="tocbutton" class="navbutton">Page Contents</span>
+    <div id="toc" class="popup" style="display: none">
+      <ul>
+  <li><div><a href="#riak-backend-overview">Riak Backend Overview</a></div></li>
+  <li><div><a href="#setup-and-creation">Setup and Creation</a></div>
+  <ul>
+    <li><div><a href="#Configure-Riak-to-use-leveldb"><span class="method name"><span class="name">Configure Riak to use leveldb</span></span></a></div></li>
+    <li><div><a href="#Determine-how-to-configure-the-backend"><span class="method name"><span class="name">Determine how to configure the backend</span></span></a></div></li>
+  </ul></li>
+  <li><div><a href="#create-a-backend">Create a Backend</a></div>
+  <ul>
+    <li><div><a href="#createBackend(options)"><span class="method name"><span class="name">createBackend(options)</span></span></a></div></li>
+  </ul></li>
+</ul>
+
+    </div>
+  </span>
+
+  <a id="githubfork" href="http://github.com/mcavage/node-ldapjs-riak">
+    <img src="https://a248.e.akamai.net/assets.github.com/img/abad93f42020b733148435e2cd92ce15c542d320/687474703a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f677265656e5f3030373230302e706e67"
+         alt="Fork me on GitHub">
+  </a>
+</div>
+    <div id="content">
+
+<h1>Backend Configuration and Tuning</h1>
+<div class="intro">
+
+
+<p>This document describes how to create an use a ldapjs-riak backend,
+how it works, tuning, and setting up Riak.</p>
+
+
+</div>
+<h1 id="riak-backend-overview">Riak Backend Overview</h1>
+
+<p>The ldapjs-riak package stores all data in Riak, and uses Riak's 2i
+feature (present in the 1.0+ version of Riak) to support fast querying
+at search time.  There is no additional dependency on other
+database/caching components (like Redis).  However, the backend is
+designed around (relatively) infrequent writes, with frequent reads,
+and specifically reads where you know you're going to be searching
+against an indexed attribute.  Non-indexed queries are basically going
+to be really bad at small scale, and not work at all at large scale.</p>
+
+<p>The backend supports "normal" indexing, which means that you can have
+multiple entries in the directory with the same attribute/value
+pairs. In addition unique indexing is supported, but to do so, the
+backend maintains a separate bucket in Riak to keep track of seen
+attribute/value pairs (i.e., unique indexes are maintained
+"manually").  Note this means that in failure modes it is possible to
+write an entry while failing to write unique index records. This is
+why it's important to tune retry/backoff setting appropriately.</p>
+
+<p>Also, the backend can optionally be configure to write LDAP changelog
+records on all updates. The changelog records are <em>almost</em> compliant
+with the <a href="LDAP
+Changelog RFC Draft">http://tools.ietf.org/html/draft-good-ldap-changelog-04</a>, but differ in that (1) changes are written as
+JSON, not LDIF, and (2) DNs are up to you to sequence/define.
+ldapjs-riak changelog records are written to yet another bucket, and
+notably are written <em>after</em> responding to the client, so it is
+possible for the client to see <code>LDAP_SUCCESS</code> but the changelog
+recording action to fail.</p>
+
+<p>It's pretty straight-forward to think about how this would work, but
+here's a quick break down of the work done by each operation:</p>
+
+<ul>
+<li><em>add(dn, entry):</em>
+<ol>
+<li>Check if <code>dn</code> exists</li>
+<li>Check if the parent of <code>dn</code> exists</li>
+<li>Add <em>operational</em> attributes (like ctime/mtime/etc.).</li>
+<li>Generate list of unique indexes, and ensure they are indeed
+unique</li>
+<li>Save the entry</li>
+<li>Save the unique indexes</li>
+<li>(optional) Write a changelog record</li>
+</ol></li>
+<li><em>bind(dn, credentials):</em>
+<ol>
+<li>Lookup entry</li>
+<li>Check credentials</li>
+</ol></li>
+<li><em>compare(dn, attr, val):</em>
+<ol>
+<li>Lookup entry</li>
+<li>Compare attribute/value</li>
+</ol></li>
+<li><em>delete(dn):</em>
+<ol>
+<li>Load entry</li>
+<li>Check if children exist</li>
+<li>Delete the main record</li>
+<li>Delete any unique indexes</li>
+<li>(optional) Write a changelog record.</li>
+</ol></li>
+<li><em>modifyDN(dn, newDN):</em>
+<ol>
+<li>Load entry</li>
+<li>Check if children exist</li>
+<li>Check if new parent exists</li>
+<li>Delete existing record</li>
+<li>Delete unique indexes</li>
+<li>Save new record</li>
+<li>Resave unique indexes</li>
+<li>(optional) Write a changelog record</li>
+</ol></li>
+<li><em>modify(dn, changes):</em>
+<ol>
+<li>Load entry</li>
+<li>Make changes</li>
+<li>Check uniqueness of changes</li>
+<li>Delete old unique indexes</li>
+<li>Save entry</li>
+<li>Save new unique indexes</li>
+<li>(optional) Write a changelog record</li>
+</ol></li>
+<li><em>search(baseDN, scope, filter):</em>
+<ol>
+<li>If scope=base, just resolve as a Riak GET</li>
+<li>Otherwise, introspect the filter, and try to use an indexed
+attribute</li>
+<li>As keys come in, load records, and check against the search
+filter to send back</li>
+</ol></li>
+</ul>
+
+<p>Note that the search operation will <em>not</em> return results sorted by DN;
+results are streamed back as we get them from Riak. This is different
+than most every other LDAP server out there, but is fine for most
+cases, as you get data faster. Sort client-side if you need to do so.</p>
+
+<h1 id="setup-and-creation">Setup and Creation</h1>
+
+<h2 id="Configure-Riak-to-use-leveldb"><span class="method name"><span class="name">Configure Riak to use leveldb</span></span></h2>
+
+<p>Obviously, to leverage Riak, you need to install Riak.  Grab a 1.0.x
+release from <a href="http://basho.com">Basho</a>, and follow their setup
+instructions.  Post-install, you'll need to edit Riak's <code>app.config</code>
+<code>storage_backend</code> setting to:</p>
+
+<pre><code>{storage_backend, riak_kv_eleveldb_backend},
+</code></pre>
+
+<p>The default will have been <code>bitcask</code>.  ldapjs-riak basically doesn't
+work, at all, without Riak's 2i feature, so this is required.</p>
+
+<p>Other than that, do whatever you would do with Riak to setup a
+cluster, tune memory setttings, add a load balancer, etc.  It's out of
+scope for this document to tell you how to deploy Riak to production...</p>
+
+<h2 id="Determine-how-to-configure-the-backend"><span class="method name"><span class="name">Determine how to configure the backend</span></span></h2>
+
+<p>The Riak backend has the following configurations:</p>
+
+<ul>
+<li>Cluster information</li>
+<li>CAP tuning</li>
+<li>Indexes/Unique Indexes</li>
+<li>Changelog</li>
+</ul>
+
+<h3>Riak Cluster</h3>
+
+<p>You configure the backend to point at a single IP/port combination, so
+really you should setup a load balancer in front of your Riak cluster,
+or do IP-takeovers, or something.  But you also configure retry/backoff
+settings, which uses <a href="https://github.com/tim-kos/node-retry">node-retry</a>; note
+that these retry settings kick in on <em>every</em> request to Riak, so you
+probably want to keep this bounded, as a single add for example
+will hit Riak at minimum for the save, plus once for each unique
+index. Modify/Delete/ModifyDN are worse.</p>
+
+<pre><code>    "client": {
+      "url": "http://localhost:8098",
+      "clientId": "my-laptop",
+      "retry": {
+        "retries": 3,
+        "factor": 2,
+        "minTimeout": 1000,
+        "maxTimeout": 10000
+      }
+    }
+</code></pre>
+
+<p>And <code>clientId</code> is the Riak identifier for this client. Just make
+something up.</p>
+
+<h3>CAP Tuning</h3>
+
+<p>As Riak nicely allows you to tune the replication/consistency/availability
+settings for each bucket, this backend allows you to tune the CAP
+settings for all three buckets (data, unique indexing, and
+changelog).</p>
+
+<p>The recommended tuning is to use the default "quorum" on the data
+bucket, use strong consistency on the unique index bucket (this means
+that in the event of a partition you won't be able to take writes),
+and do whatever you want on changelog (probably quorum makes sense).</p>
+
+<h1 id="create-a-backend">Create a Backend</h1>
+
+<p>If you're not familiar wth <a href="http://ldapjs.org">ldapjs</a>, get familiar,
+as the rest of this won't make any sense otherwise.  ldapjs includes
+the ability to keep a "backend" object that is stateful, and this
+module leverages that functionality.  The bare minimum you need to get
+going is the following:</p>
+
+<pre><code>var ldapRiak = require('ldapjs-riak');
+var backend = ldapRiak.createBackend({
+    "bucket": {
+      "name": "ldapjs_riak",
+    },
+    "uniqueIndexBucket": {
+      "name": ldapjs_riak_uindex",
+    },
+    "client": {
+      "url": "http://localhost:8098",
+      "clientId": "ldapjs_riak"
+    }
+});
+</code></pre>
+
+<p>Which will create a backend, and point it at the specified Riak
+host/port/buckets, with no indexes.  Once you have that, you can mount
+the backend "as normal" in ldapjs:</p>
+
+<pre><code>var ldap = require('ldapjs');
+
+var SUFFIX = 'dc=example, dc=com';
+
+var server = ldap.createServer({});
+
+server.add(SUFFIX, backend, backend.add());
+server.modify(SUFFIX, backend, backend.modify());
+server.bind(SUFFIX, backend, backend.bind());
+server.compare(SUFFIX, backend, backend.compare());
+server.del(SUFFIX, backend, backend.del());
+server.modifyDN(SUFFIX, backend, backend.modifyDN());
+server.search(SUFFIX, backend, backend.search());
+</code></pre>
+
+<p>While that's kind of annoyingly verbose, each of the operations takes
+the ability to inject handlers that run after backend
+intiialization has been run, but before "real work" gets kicked
+off. So for example:</p>
+
+<pre><code>server.compare(SUFFIX, backend, function(req, res, next) {
+  return next();
+}, backend.compare(function(req, res, next) {
+  req.riak.log('hello world');
+}));
+</code></pre>
+
+<p>While that does nothing interesting, it does show that you can still
+use "normal" handlers with ldapjs, as well as special "ldapjs-riak" handlers.</p>
+
+<h2 id="createBackend(options)"><span class="method name"><span class="name">createBackend(options)</span></span></h2>
+
+<p>The full list of options (options is a plain JS object) to <code>createBackend</code> is:</p>
+
+<table>
+<tbody>
+<tr><td>bucket</td><td>Object</td><td>required</td><td>A configuration of the Riak bucket name and CAP tunings for entries.</td></tr>
+<tr><td>log4js</td><td>Log4JS Instance</td><td>required</td><td><code>require('log4js')</code> or other configured instance.</td></tr>
+<tr><td>client</td><td>Object</td><td>required</td><td>Connection information for the actual Riak cluster.</td></tr>
+<tr><td>uniqueIndexBucket</td><td>Object</td><td>optional</td><td>A configuration of the Riak bucket name and CAP tunings for unique indexes.</td></tr>
+<tr><td>changelogBucket</td><td>Object</td><td>optional</td><td>A configuration of the Riak bucket name and CAP tunings for changelogging.</td></tr>
+<tr><td>indexes</td><td>Object</td><td>optional</td><td>A listing of attributes to index in an entry, and whether or not uniquness should be enforced.</td></tr>
+</tbody>
+</table>
+
+    </div>
+<div id="footer">
+  <p class='copy'>Copyright &copy; 2011 <a href="https://github.com/mcavage">Mark Cavage</a></p>
+</div>
+</div> <!-- end of #main -->
+</div> <!-- end of #wrapper -->
+<script type="text/javascript" charset="utf-8">
+$(function () {
+    $("#toc").click(function(event) {
+        // This to ensure clicks in the #toc don't make it up to the
+        // button handler.
+        event.stopPropagation();
+    });
+    $("#toc a").click(function(event) {
+        $("#tocbutton").click();
+    })
+    $("#tocbutton").click(function(event) {
+        var target = $("#toc");
+        if (target.css("display") !== "block") {
+            $("body").bind("click.tocCloser", function(event) {
+                $("#tocbutton").click();
+                event.stopPropagation();
+            });
+        } else {
+            $("body").unbind("click.tocCloser");
+        }
+        target.slideToggle(100);
+        event.stopPropagation();
+    });
+
+    $("#api").click(function(event) {
+        // This to ensure clicks in the #api don't make it up to the
+        // button handler.
+        event.stopPropagation();
+    });
+    $("#api a").click(function(event) {
+        $("#apibutton").click();
+    })
+    $("#apibutton").click(function(event) {
+        var target = $("#api");
+        if (target.css("display") !== "block") {
+            $("body").bind("click.apiCloser", function(event) {
+                $("#apibutton").click();
+                event.stopPropagation();
+            });
+        } else {
+            $("body").unbind("click.apiCloser");
+        }
+        target.slideToggle(100);
+        event.stopPropagation();
+    });
+});
+</script>
+
+</body>
+</html>
