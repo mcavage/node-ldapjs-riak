@@ -24,10 +24,8 @@
 <div id="fadeout"></div>
 <div id="header">
   <span id="logo">
-    <a id="homelink" href="https://mcavage.github.com/node-ldapjs-riak">ldapjs-riak</a>
+    <a id="homelink" href="http://mcavage.github.com/node-ldapjs-riak">ldapjs-riak</a>
   </span>
-
-  <!-- <a class="navbutton" href="backend.html">Backend</a> -->
 
   <span id="apibox">
     <span id="apibutton" class="navbutton">Sections</span>
