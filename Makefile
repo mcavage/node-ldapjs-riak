@@ -1,4 +1,4 @@
-NAME=ldapjs
+NAME=ldapjs-riak
 
 ifeq ($(VERSION), "")
 	@echo "Use gmake"
