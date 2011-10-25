@@ -168,7 +168,7 @@ own code for:
 
 # More information
 
-||[backend](/backend.html)||Reference for creating and configuring the backend.||
+||[backend](/node-ldapjs-riak/backend.html)||Reference for creating and configuring the backend.||
 
 ||License||[MIT](http://opensource.org/licenses/mit-license.php)||
 ||Code||[mcavage/node-ldapjs-riak](https://github.com/mcavage/node-ldapjs-riak)||
