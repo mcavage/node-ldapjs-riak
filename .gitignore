@@ -1,6 +1,5 @@
 node_modules
 *.log
 *.ldif
-*.tar.gz
-*.tar.bz2
-./docs/pkg
+*.tar*
+docs/pkg
