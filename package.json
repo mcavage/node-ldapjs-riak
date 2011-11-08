@@ -3,7 +3,7 @@
   "name": "ldapjs-riak",
   "homepage": "http://ldapjs.org",
   "description": "A Riak backend for ldapjs (server).",
-  "version": "0.1.10",
+  "version": "0.1.12",
   "repository": {
     "type": "git",
     "url": "git://github.com/mcavage/node-ldapjs-riak.git"
