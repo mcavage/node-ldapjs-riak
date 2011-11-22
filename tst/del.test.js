@@ -40,7 +40,11 @@ test('setup', function(t) {
       uid: true
     },
     client: {
-      url: 'http://localhost:8098'
+      url: 'http://localhost:8098',
+      cache: {
+        size: 100,
+        age: 10
+      }
     },
     log4js: log4js
   });

@@ -22,7 +22,11 @@ var key = uuid();
 test('setup', function(t) {
   log4js.setGlobalLogLevel('TRACE');
   client = new Riak({
-    log4js: log4js
+    log4js: log4js,
+    cache: {
+      size: 100,
+      age: 30
+    }
   });
   t.ok(client);
   t.end();
