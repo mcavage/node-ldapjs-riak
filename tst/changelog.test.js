@@ -130,6 +130,7 @@ test('search sub objectclass=*', function(t) {
 
     var retrieved = 0;
     res.on('searchEntry', function(entry) {
+      console.log('in searchEntry');
       t.ok(entry);
       t.ok(entry instanceof ldap.SearchEntry);
       t.ok(entry.dn.toString());
@@ -137,14 +138,17 @@ test('search sub objectclass=*', function(t) {
       t.ok(entry.attributes.length);
       t.ok(entry.object);
       retrieved++;
+      console.log('exiting search entry', retrieved);
     });
     res.on('error', function(err) {
       t.fail(err);
     });
     res.on('end', function(res) {
+      console.log('in end');
       t.ok(res);
       t.ok(res instanceof ldap.SearchResponse);
       t.equal(res.status, 0);
+      console.log('retrieved', retrieved);
       t.ok(retrieved);
       t.end();
     });
