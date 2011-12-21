@@ -22,7 +22,6 @@ A fully backend for [ldapjs](http://ldapjs.org) built over [Riak](http://wiki.ba
     server.bind(SUFFIX, backend, backend.bind());
     server.compare(SUFFIX, backend, backend.compare());
     server.del(SUFFIX, backend, backend.del());
-    server.modifyDN(SUFFIX, backend, backend.modifyDN());
     server.search(SUFFIX, backend, backend.search(searchSalt));
 
     server.listen(config.port, config.host, function() {
