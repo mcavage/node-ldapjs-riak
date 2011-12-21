@@ -24,6 +24,7 @@ own entry, and any child entries (as an example):
 
     var ldap = require('ldapjs');
     var ldapRiak = require('ldapjs-riak');
+    var log4js = require('log4js');
 
     var SUFFIX = 'o=example';
 
@@ -41,6 +42,7 @@ own entry, and any child entries (as an example):
 
     var server = ldap.createServer();
     var backend = ldapRiak.createBackend({
+        "log4js": log4js,
         "bucket": {
           "name": "ldapjs_riak",
         },
