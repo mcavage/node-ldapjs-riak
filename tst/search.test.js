@@ -236,6 +236,31 @@ test('search sub filter ok', function(t) {
 });
 
 
+test('search sub wrong base', function(t) {
+  var opts = {
+    filter: '(cn=*)',
+    scope: 'sub'
+  };
+  client.search('cn=foo,' + SUFFIX, opts, function(err, res) {
+    t.ifError(err);
+    t.ok(res);
+
+    res.on('searchEntry', function(entry) {
+      t.fail('Got an entry, but shouldn\'t have');
+    });
+    res.on('error', function(err) {
+      t.fail(err);
+    });
+    res.on('end', function(res) {
+      t.ok(res);
+      t.ok(res instanceof ldap.SearchResponse);
+      t.equal(res.status, 0);
+      t.end();
+    });
+  });
+});
+
+
 test('search sub filter no match', function(t) {
   var opts = {
     filter: '(foo=bar)',
