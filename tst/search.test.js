@@ -32,6 +32,9 @@ test('setup', function(t) {
     uniqueIndexBucket: {
       name: uuid()
     },
+    changelogBucket: {
+      name: uuid()
+    },
     indexes: {
       l: false,
       uid: true
@@ -137,6 +140,12 @@ test('search base objectclass=*', function(t) {
       t.ok(entry.attributes);
       t.ok(entry.attributes.length);
       t.ok(entry.object);
+      var hasChangenumber = false;
+      entry.attributes.forEach(function(element) {
+        if (element.type == 'changenumber' && element.vals)
+          hasChangenumber = true;
+      });
+      t.equal(hasChangenumber, true);
       retrieved++;
     });
     res.on('error', function(err) {
@@ -166,6 +175,12 @@ test('search base eq filter ok', function(t) {
       t.ok(entry.attributes);
       t.ok(entry.attributes.length);
       t.ok(entry.object);
+      var hasChangenumber = false;
+      entry.attributes.forEach(function(element) {
+        if (element.type == 'changenumber' && element.vals)
+          hasChangenumber = true;
+      });
+      t.equal(hasChangenumber, true);
       retrieved++;
     });
     res.on('error', function(err) {
@@ -220,6 +235,12 @@ test('search sub filter ok', function(t) {
       t.ok(entry.attributes);
       t.ok(entry.attributes.length);
       t.ok(entry.object);
+      var hasChangenumber = false;
+      entry.attributes.forEach(function(element) {
+        if (element.type == 'changenumber' && element.vals)
+          hasChangenumber = true;
+      });
+      t.equal(hasChangenumber, true);
       retrieved++;
     });
     res.on('error', function(err) {
@@ -303,6 +324,12 @@ test('search sub ge filter ok', function(t) {
       t.ok(entry.attributes);
       t.ok(entry.attributes.length);
       t.ok(entry.object);
+      var hasChangenumber = false;
+      entry.attributes.forEach(function(element) {
+        if (element.type == 'changenumber' && element.vals)
+          hasChangenumber = true;
+      });
+      t.equal(hasChangenumber, true);
       retrieved++;
     });
     res.on('error', function(err) {
@@ -337,6 +364,12 @@ test('search sub le filter ok', function(t) {
       t.ok(entry.attributes);
       t.ok(entry.attributes.length);
       t.ok(entry.object);
+      var hasChangenumber = false;
+      entry.attributes.forEach(function(element) {
+        if (element.type == 'changenumber' && element.vals)
+          hasChangenumber = true;
+      });
+      t.equal(hasChangenumber, true);
       retrieved++;
     });
     res.on('error', function(err) {
@@ -370,6 +403,12 @@ test('search sub and filter ok', function(t) {
       t.ok(entry.attributes);
       t.ok(entry.attributes.length);
       t.ok(entry.object);
+      var hasChangenumber = false;
+      entry.attributes.forEach(function(element) {
+        if (element.type == 'changenumber' && element.vals)
+          hasChangenumber = true;
+      });
+      t.equal(hasChangenumber, true);
       retrieved++;
     });
     res.on('error', function(err) {
@@ -403,6 +442,12 @@ test('search sub or filter ok', function(t) {
       t.ok(entry.attributes);
       t.ok(entry.attributes.length);
       t.ok(entry.object);
+      var hasChangenumber = false;
+      entry.attributes.forEach(function(element) {
+        if (element.type == 'changenumber' && element.vals)
+          hasChangenumber = true;
+      });
+      t.equal(hasChangenumber, true);
       retrieved++;
     });
     res.on('error', function(err) {
